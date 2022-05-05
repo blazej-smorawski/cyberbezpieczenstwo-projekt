@@ -13,7 +13,7 @@ namespace projekt
             name = "Test Crypto";
         }
 
-        override public byte[] encrypt(in byte[] plainText)
+        override public byte[] encrypt(in byte[] plainText, in byte[] key)
         {
             byte[] encryptedText = new byte[plainText.Length];
             for (int i = 0; i < encryptedText.Length; i++)
@@ -23,7 +23,7 @@ namespace projekt
             return encryptedText;
         }
 
-        override public byte[] decrypt(in byte[] plainText)
+        override public byte[] decrypt(in byte[] plainText, in byte[] key)
         {
             byte[] encryptedText = new byte[plainText.Length];
             for (int i = 0; i < encryptedText.Length; i++)
