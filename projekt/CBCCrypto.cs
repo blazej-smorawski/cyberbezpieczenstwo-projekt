@@ -10,41 +10,37 @@ namespace projekt
 {
     internal class CBCCrypto : Crypto
     {
-        public string name;
-
         public CBCCrypto()
         {
             name = "CBCCrypto";
         }
 
-        public override byte[] encrypt(in byte[] plainText, in byte[] key)
+        public override byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv)
         {
-
             using (var aes = Aes.Create())
             {
                 aes.Mode = CipherMode.CBC;
                 aes.KeySize = 128;
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
-                //PasswordDeriveBytes password = new PasswordDeriveBytes(key, null);
-                //byte[] keyBytes = password.GetBytes(key.Length / 8);
 
                 aes.Key = key;
-                aes.GenerateIV();
+                aes.IV = iv;
 
                 byte[] encrypted;
                 using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
                 {
-                    encrypted = PerformCryptography(plainText, encryptor);
+                    encrypted = performCryptography(plainText, encryptor);
                 }
 
-                byte[] connected = aes.IV.Concat(encrypted).ToArray();
+                var outt = decrypt(encrypted, key, iv);
+                string outstring = System.Text.Encoding.ASCII.GetString(outt);
 
-                return connected;
+                return encrypted;
             }
         }
 
-        public override byte[] decrypt(in byte[] encryptedText, in byte[] key)
+        public override byte[] decrypt(in byte[] encryptedText, in byte[] key, in byte[] iv)
         {
             using (var aes = Aes.Create())
             {
@@ -53,33 +49,28 @@ namespace projekt
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
 
-                // read IV from encryptedText
-                byte[] IV = new byte[16];
-                byte[] encrypted_data = new byte[encryptedText.Length - 16];
-
-                Array.Copy(encryptedText, IV, IV.Length);
-                Array.Copy(encryptedText, 16, encrypted_data, 0, encrypted_data.Length);
-
                 aes.Key = key;
-                aes.IV = IV;
+                aes.IV = iv;
 
                 using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
                 {
-                    return PerformCryptography(encrypted_data, decryptor);
+                    return performCryptography(encryptedText, decryptor);
                 }
             }
         }
 
-        private byte[] PerformCryptography(byte[] data, ICryptoTransform cryptoTransform)
+        private byte[] performCryptography(byte[] data, ICryptoTransform cryptoTransform)
         {
             using (var ms = new MemoryStream())
-            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
             {
-                cryptoStream.Write(data, 0, data.Length);
-                // no need for that (using)
-                cryptoStream.FlushFinalBlock();
+                using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
+                {
+                    // TODO: Add handling for badly shaped data
+                    cryptoStream.Write(data, 0, data.Length);
+                    cryptoStream.FlushFinalBlock();
 
-                return ms.ToArray();
+                    return ms.ToArray();
+                }
             }
         }
     }

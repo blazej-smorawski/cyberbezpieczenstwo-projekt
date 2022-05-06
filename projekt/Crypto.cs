@@ -10,7 +10,7 @@ namespace projekt
     {
         public string name = "Crypto";
 
-        abstract public byte[] encrypt(in byte[] plainText, in byte[] key);
-        abstract public byte[] decrypt(in byte[] plainText, in byte[] key);
+        abstract public byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv);
+        abstract public byte[] decrypt(in byte[] plainText, in byte[] key, in byte[] iv);
     }
 }

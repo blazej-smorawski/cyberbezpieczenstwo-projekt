@@ -1,0 +1,178 @@
+import Foundation
+
+class Location : CustomStringConvertible{
+  enum LType {
+    case restaurant,pub,museum,monument
+  }
+  var id:Int
+  var type:LType
+  var name:String
+  var rating:Int
+
+  public var description: String { return "\(name), \(rating)" }
+
+  init(_ id:Int, _ type:LType, _ name:String, _ rating:Int) {
+    self.id=id
+    self.type = type
+    self.name = name
+    self.rating = rating
+  }
+}
+
+class City : CustomStringConvertible{
+  var id:Int
+  var name:String
+  var citydescription:String
+  var latitude:Float
+  var longitude:Float
+  var keywords:[String]
+  var locations:[Location]
+
+  public var description: String { return "\(name), \(citydescription) \(keywords)" }
+
+  init(_ id:Int, _ name:String, _ description:String, _ latitude:Float, 
+    _ longitude:Float, _ keywords:[String], _ locations:[Location]) {
+        self.id = id
+        self.name = name
+        self.citydescription = description
+        self.latitude = latitude
+        self.longitude = longitude
+        self.keywords = keywords
+        self.locations = locations
+  }
+
+  func fiveStar() -> [Location] {
+    return locations.filter({$0.rating == 5})
+  }
+}
+
+class CitiesCollection {
+    var cities:[City]
+
+    init(_ cities:[City]) {
+        self.cities = Array(cities)
+    }
+
+    func printCities() {
+        for city in cities {
+            print(city.name)
+        }
+    }
+
+    func search(name:String) -> [City] {
+      return cities.filter({$0.name==name})
+    }
+
+    func search(keyword:String) -> [City] {
+      return cities.filter({$0.keywords.contains(keyword)})
+    }
+
+    static func distance(_ c1:City, _ c2:City) -> Float {
+      let R = 6371000 as Float//metres
+      let f1 = c1.latitude * Float.pi/180
+      let f2 = c2.latitude * Float.pi/180
+      let df = (c2.latitude-c1.latitude) * Float.pi/180
+      let dl = (c2.longitude-c1.longitude) * Float.pi/180
+
+      let a = sin(df/2)*sin(df/2)+cos(f1)*cos(f2)*sin(dl/2)*sin(dl/2)
+      let c = 2 * atan2(sqrt(a),sqrt(1-a))
+      return R*c/1000
+    }
+
+    func extremes(_ lat:Float, _ lon:Float) -> (close:City,far:City) {
+      var close_dist = Float.infinity
+      var far_dist = 0 as Float
+      var close_city = cities[0]
+      var far_city = cities[0]
+      let temp_city = City(-1,"","",lat,lon,[],[])
+      for city in cities {
+        let dist = CitiesCollection.distance(city,temp_city)
+        if dist < close_dist {
+          close_city = city
+          close_dist = dist
+        }
+        if dist>far_dist {
+          far_city = city
+          far_dist = dist
+        }
+      }
+      return (close_city,far_city)
+    }
+
+    func mostDistant() -> (City,City) {
+      var edist = -1 as Float
+      var e1:City = cities[0]
+      var e2:City = cities[0]
+      for c1 in cities {
+        for c2 in cities {
+          let dist = CitiesCollection.distance(c1,c2)
+          if dist > edist {
+            edist = dist
+            e1 = c1
+            e2 = c2
+          }
+        }
+      }
+      return (e1,e2)
+    }
+
+    func fiveStarRestaurants() -> [City] {
+      return cities.filter({$0.locations.contains(where:{$0.type == Location.LType.restaurant && $0.rating == 5})})
+    }
+
+    static func getLocations(_ city:City)->[Location] {
+      var arr:[Location] = Array(city.locations)
+      arr.sort(by: {$0.rating>$1.rating})
+      return arr
+    }
+
+    func fiveStars() {
+      for city in cities {
+        let locations = city.fiveStar()
+        print("\(city.name) - \(locations.count) -> \(locations)")
+      }
+    }
+}
+
+var cities:[City] = []
+
+// Dane dotycz¹ce szerokoœci i d³ugoœci geograficznej s¹ losowe
+cities.append(City(0,"Napoli","Cool city",-41.055,-33.296,["seaside", "party", "music", "nature"],[Location(1,Location.LType.monument,"Unknown monument",1),Location(0,Location.LType.restaurant,"Ristoranto",5),Location(0,Location.LType.restaurant,"Ristoranto bad",2)]))
+cities.append(City(1,"Madrid","New city",85.317,-151.240,["party", "sport", "music", "nature"],[Location(1,Location.LType.pub,"beer and peer",5)]))
+cities.append(City(2,"Amsterdam","Cool city",75.100,-86.631,["seaside", "music"],[Location(2,Location.LType.museum,"Old museum",4)]))
+cities.append(City(3,"Brussels","Big city",43.057,-150.632,["seaside", "nature"],[]))
+cities.append(City(4,"Hamburg","Cool city",74.371,169.843,["sport", "music", "nature"],[Location(3,Location.LType.restaurant,"Chineeesse",4),Location(4,Location.LType.pub,"Drinker",3)]))
+cities.append(City(5,"Oslo","Cool city",-29.537,-101.645,["seaside", "sport"],[]))
+cities.append(City(6,"Novogrod","Old city",78.311,-176.814,["seaside", "party", "sport", "music"],[]))
+cities.append(City(7,"Edinburgh","Old city",82.511,-174.287,["nature"],[]))
+cities.append(City(8,"Dublin","Cool city",48.931,-96.482,["nature"],[]))
+cities.append(City(9,"Paris","Old city",-74.345,-88.830,["seaside", "party", "sport", "music"],[]))
+cities.append(City(10,"Minsk","Old city",71.232,101.350,["seaside", "party", "nature"],[Location(5,Location.LType.pub,"Beer",4)]))
+cities.append(City(11,"Lisbon","Big city",-37.893,135.917,["party", "music"],[]))
+cities.append(City(12,"Casablanca","Old city",-48.867,78.886,["party"],[]))
+cities.append(City(13,"Tripoli","Smol city",82.290,83.882,["seaside", "party"],[Location(6,Location.LType.monument,"Monumento",1)]))
+cities.append(City(14,"Cairo","Cool city",-59.815,22.525,["seaside", "party", "sport", "nature"],[]))
+cities.append(City(15,"Nairobi","Smol city",70.619,61.500,["seaside"],[Location(0,Location.LType.restaurant,"Rist",5)]))
+cities.append(City(16,"Bangkok","Big city",45.744,126.596,["party", "music", "nature"],[]))
+cities.append(City(17,"Taipei","Big city",-9.073,10.088,["seaside", "nature"],[]))
+cities.append(City(18,"Wuhan","New city",24.693,158.305,["sport", "music", "nature"],[]))
+cities.append(City(19,"Busan","Big city",-51.998,114.917,["seaside", "sport", "nature"],[]))
+
+var collection = CitiesCollection(cities)
+
+print("-----Search by name Hamburg-----")
+print(collection.search(name:"Hamburg"))
+print("-----Search by keyword nature-----")
+print(collection.search(keyword:"nature"))
+print("-----Distance from Madrid to Napoli-----")
+print(CitiesCollection.distance(collection.search(name: "Madrid")[0], collection.search(name: "Napoli")[0]))
+print("-----Close and far-----")
+print(collection.extremes(-41,-33))
+print("-----Most distant-----")
+print(collection.mostDistant())
+print("-----Five star restaurants-----")
+print(collection.fiveStarRestaurants())
+print("-----Get sorted locations-----")
+print(CitiesCollection.getLocations(cities[0]))
+print("-----Get count of 5 star locations in each city-----")
+print(collection.fiveStars())

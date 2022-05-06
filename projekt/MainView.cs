@@ -1,13 +1,22 @@
+using System.Text;
+
 namespace projekt
 {
     public partial class MainView : Form
     {
         // List of all cryptographic algorithms available
-        List<Crypto> cryptos = new List<Crypto> {new TestCrypto(), new CBCCrypto()};
+        List<Crypto> cryptos = new List<Crypto> {new CBCCrypto()};
+        byte[] inputData;
+        byte[] outputData;
+
+        Encoding ascii = Encoding.ASCII;
+        Encoding unicode = Encoding.Unicode;
 
         public MainView()
         {
             InitializeComponent();
+            inputData = new byte[32];
+            outputData = new byte[32];
         }
 
         private void loadData_Click(object sender, EventArgs e)
@@ -16,7 +25,8 @@ namespace projekt
             {
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    inputText.Text = File.ReadAllText(openFileDialog.FileName);
+                    inputData = File.ReadAllBytes(openFileDialog.FileName);
+                    inputText.Text = BitConverter.ToString(inputData);
                 }
             }
         }
@@ -27,33 +37,33 @@ namespace projekt
             {
                 if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
-                    File.WriteAllText(saveFileDialog1.FileName, outputText.Text);
+                    File.WriteAllBytes(saveFileDialog1.FileName, outputData);
                 }
             }
         }
 
         private void encryptButton_Click(object sender, EventArgs e)
         {
-            byte[] input = System.Text.Encoding.ASCII.GetBytes(inputText.Text);
+            byte[] input = inputData;
             byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
+            byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            byte[] encrypted = crypto.encrypt(input, key);
-
-            debuginfo.Text = (encrypted.Length).ToString();
+            outputData = crypto.encrypt(input, key, iv);
   
-            outputText.Text = System.Text.Encoding.ASCII.GetString(encrypted, 0, encrypted.Length);
+            outputText.Text = BitConverter.ToString(outputData);
         }
         private void decryptButton_Click(object sender, EventArgs e)
         {
-            // gets encrypted data from the right window
-            byte[] input = System.Text.Encoding.ASCII.GetBytes(outputText.Text);
-            byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
+            // gets encrypted data from the left window
+            byte[] input = inputData;
+            byte[] key = System.Text.Encoding.Latin1.GetBytes(keyBox.Text);
+            byte[] iv = System.Text.Encoding.Latin1.GetBytes(ivBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            byte[] decrypted = crypto.decrypt(input, key);
+            outputData = crypto.decrypt(input, key, iv);
 
-            outputText.Text = System.Text.Encoding.ASCII.GetString(decrypted, 0, decrypted.Length);
+            outputText.Text = BitConverter.ToString(outputData);
         }
 
         private void MainView_Load(object sender, EventArgs e)
@@ -68,12 +78,21 @@ namespace projekt
             algorithmDropdown.ValueMember = "Value";
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void inputText_TextChanged(object sender, EventArgs e)
         {
-
+            try
+            {
+                byte[] converted = Array.ConvertAll<string, byte>(inputText.Text.Split('-'), s => Convert.ToByte(s, 16));
+                inputData = converted;
+                statusLabel.Text = "Successfully converted input data into bytes";
+            }
+            catch (Exception)
+            {
+                statusLabel.Text = "Failed to convert input data into bytes";
+            }
         }
 
-        private void outputText_TextChanged(object sender, EventArgs e)
+        private void toolStripStatusLabel1_Click(object sender, EventArgs e)
         {
 
         }
