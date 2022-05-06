@@ -3,7 +3,7 @@ namespace projekt
     public partial class MainView : Form
     {
         // List of all cryptographic algorithms available
-        List<Crypto> cryptos = new List<Crypto> {new TestCrypto()};
+        List<Crypto> cryptos = new List<Crypto> {new TestCrypto(), new CBCCrypto()};
 
         public MainView()
         {
@@ -35,18 +35,23 @@ namespace projekt
         private void encryptButton_Click(object sender, EventArgs e)
         {
             byte[] input = System.Text.Encoding.ASCII.GetBytes(inputText.Text);
+            byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            byte[] encrypted = crypto.encrypt(input);
+            byte[] encrypted = crypto.encrypt(input, key);
+
+            debuginfo.Text = (encrypted.Length).ToString();
   
             outputText.Text = System.Text.Encoding.ASCII.GetString(encrypted, 0, encrypted.Length);
         }
         private void decryptButton_Click(object sender, EventArgs e)
         {
-            byte[] input = System.Text.Encoding.ASCII.GetBytes(inputText.Text);
+            // gets encrypted data from the right window
+            byte[] input = System.Text.Encoding.ASCII.GetBytes(outputText.Text);
+            byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            byte[] decrypted = crypto.decrypt(input);
+            byte[] decrypted = crypto.decrypt(input, key);
 
             outputText.Text = System.Text.Encoding.ASCII.GetString(decrypted, 0, decrypted.Length);
         }
@@ -61,6 +66,16 @@ namespace projekt
             algorithmDropdown.DataSource = bindingSource;
             algorithmDropdown.DisplayMember = "Key";
             algorithmDropdown.ValueMember = "Value";
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void outputText_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
