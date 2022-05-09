@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace projekt
 {
@@ -42,6 +43,21 @@ namespace projekt
             }
         }
 
+        private void displayNewOutput(string newText)
+        {
+            string oldText = outputText.Text;
+            outputText.Text = newText;
+            outputText.SelectionBackColor = Color.Red;
+            for (int i = 0; i < newText.Length; i++)
+            {
+                if (i >= oldText.Length || newText[i] != oldText[i])
+                {
+                    outputText.Select(i, 1);
+                    outputText.SelectionBackColor = Color.Red;
+                }
+            }
+        }
+
         private void encryptButton_Click(object sender, EventArgs e)
         {
             byte[] input = inputData;
@@ -50,8 +66,8 @@ namespace projekt
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
             outputData = crypto.encrypt(input, key, iv);
-  
-            outputText.Text = BitConverter.ToString(outputData);
+
+            displayNewOutput(BitConverter.ToString(outputData));
         }
         private void decryptButton_Click(object sender, EventArgs e)
         {
@@ -63,7 +79,7 @@ namespace projekt
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
             outputData = crypto.decrypt(input, key, iv);
 
-            outputText.Text = BitConverter.ToString(outputData);
+            displayNewOutput(BitConverter.ToString(outputData));
         }
 
         private void MainView_Load(object sender, EventArgs e)
@@ -80,6 +96,8 @@ namespace projekt
 
         private void inputText_TextChanged(object sender, EventArgs e)
         {
+            // TODO: remove it in ascii mode
+            //inputText.Text = Regex.Replace(inputText.Text, "[^a-fA-F0-9-]", "");
             try
             {
                 byte[] converted = Array.ConvertAll<string, byte>(inputText.Text.Split('-'), s => Convert.ToByte(s, 16));

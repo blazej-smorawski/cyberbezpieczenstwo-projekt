@@ -32,8 +32,8 @@
             System.Windows.Forms.Label ivLabel;
             System.Windows.Forms.Label labelMode;
             this.loadData = new System.Windows.Forms.Button();
-            this.inputText = new System.Windows.Forms.TextBox();
-            this.outputText = new System.Windows.Forms.TextBox();
+            this.inputText = new System.Windows.Forms.RichTextBox();
+            this.outputText = new System.Windows.Forms.RichTextBox();
             this.encryptButton = new System.Windows.Forms.Button();
             this.decryptButton = new System.Windows.Forms.Button();
             this.algorithmDropdown = new System.Windows.Forms.ComboBox();
@@ -237,8 +237,8 @@
         #endregion
 
         private Button loadData;
-        private TextBox inputText;
-        private TextBox outputText;
+        private RichTextBox inputText;
+        private RichTextBox outputText;
         private Button encryptButton;
         private Button decryptButton;
         private ComboBox algorithmDropdown;

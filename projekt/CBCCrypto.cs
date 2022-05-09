@@ -27,16 +27,10 @@ namespace projekt
                 aes.Key = key;
                 aes.IV = iv;
 
-                byte[] encrypted;
                 using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
                 {
-                    encrypted = performCryptography(plainText, encryptor);
+                    return performCryptography(plainText, encryptor);
                 }
-
-                var outt = decrypt(encrypted, key, iv);
-                string outstring = System.Text.Encoding.ASCII.GetString(outt);
-
-                return encrypted;
             }
         }
 
