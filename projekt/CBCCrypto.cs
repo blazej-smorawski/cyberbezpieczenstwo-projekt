@@ -15,7 +15,7 @@ namespace projekt
             name = "CBCCrypto";
         }
 
-        public override byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv)
+        public override byte[] encrypt(in byte[] plainText, in byte[] key)
         {
             using (var aes = Aes.Create())
             {
@@ -25,16 +25,22 @@ namespace projekt
                 aes.Padding = PaddingMode.PKCS7;
 
                 aes.Key = key;
-                aes.IV = iv;
+                aes.GenerateIV();
+
+                byte[] encrypted;
 
                 using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
                 {
-                    return performCryptography(plainText, encryptor);
+                    encrypted = performCryptography(plainText, encryptor);
                 }
+
+                byte[] ciphertextwIV = aes.IV.Concat(encrypted).ToArray();
+
+                return ciphertextwIV;
             }
         }
 
-        public override byte[] decrypt(in byte[] encryptedText, in byte[] key, in byte[] iv)
+        public override byte[] decrypt(in byte[] encryptedText, in byte[] key)
         {
             using (var aes = Aes.Create())
             {
@@ -43,12 +49,19 @@ namespace projekt
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
 
+                byte[] IV = new byte[16];
+                byte[] encryptedData = new byte[encryptedText.Length - 16];
+
+                Array.Copy(encryptedText, IV, IV.Length);
+                Array.Copy(encryptedText, 16, encryptedData, 0, encryptedData.Length);
+
                 aes.Key = key;
-                aes.IV = iv;
+                aes.IV = IV;
+              
 
                 using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
                 {
-                    return performCryptography(encryptedText, decryptor);
+                    return performCryptography(encryptedData, decryptor);
                 }
             }
         }

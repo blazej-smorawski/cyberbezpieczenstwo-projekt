@@ -58,26 +58,65 @@ namespace projekt
             }
         }
 
+        private void displayNewInput(string newText)
+        {
+            string oldText = inputText.Text;
+            inputText.Text = newText;
+            inputText.SelectionBackColor = Color.Red;
+            for (int i = 0; i < newText.Length; i++)
+            {
+                if (i >= oldText.Length || newText[i] != oldText[i])
+                {
+                    inputText.Select(i, 1);
+                    inputText.SelectionBackColor = Color.Red;
+                }
+            }
+        }
+
+        private byte[] keyModifier(byte[] key)
+        {
+            byte[] modified = new byte[16];
+            
+            if(key.Length != 16)
+            {
+                for(int i = 0; i < modified.Length; i++)
+                {
+                    if(i < key.Length)
+                    {
+                        modified[i] = key[i];
+                    }
+                    else
+                    {
+                        modified[i] = 0;
+                    }
+                }
+            }
+            return modified;
+        }
+
         private void encryptButton_Click(object sender, EventArgs e)
         {
             byte[] input = inputData;
             byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
-            byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivBox.Text);
+            key = keyModifier(key);
+            //byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            outputData = crypto.encrypt(input, key, iv);
+            outputData = crypto.encrypt(input, key);
 
             displayNewOutput(BitConverter.ToString(outputData));
         }
         private void decryptButton_Click(object sender, EventArgs e)
         {
             // gets encrypted data from the left window
+            //byte[] input = inputData;
             byte[] input = inputData;
             byte[] key = System.Text.Encoding.Latin1.GetBytes(keyBox.Text);
-            byte[] iv = System.Text.Encoding.Latin1.GetBytes(ivBox.Text);
+            key = keyModifier(key);
+            //byte[] iv = System.Text.Encoding.Latin1.GetBytes(ivBox.Text);
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            outputData = crypto.decrypt(input, key, iv);
+            outputData = crypto.decrypt(input, key);
 
             displayNewOutput(BitConverter.ToString(outputData));
         }
@@ -100,7 +139,7 @@ namespace projekt
             //inputText.Text = Regex.Replace(inputText.Text, "[^a-fA-F0-9-]", "");
             try
             {
-                byte[] converted = Array.ConvertAll<string, byte>(inputText.Text.Split('-'), s => Convert.ToByte(s, 16));
+                byte[] converted = Array.ConvertAll(inputText.Text.Split('-'), s => Convert.ToByte(s, 16));
                 inputData = converted;
                 statusLabel.Text = "Successfully converted input data into bytes";
             }
