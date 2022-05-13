@@ -8,42 +8,28 @@ using System.Threading.Tasks;
 
 namespace projekt
 {
-    internal class CBCCrypto : Crypto
+    internal class ECBCrypto : Crypto
     {
-        public CBCCrypto()
+        public ECBCrypto()
         {
-            name = "CBCCrypto";
+            name = "ECBCrypto";
         }
 
         public override byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv)
         {
             using (var aes = Aes.Create())
             {
-                aes.Mode = CipherMode.CBC;
+                aes.Mode = CipherMode.ECB;
                 aes.KeySize = 128;
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
 
                 aes.Key = key;
-                if (iv.Length == 0)
-                {
-                    aes.GenerateIV();
-                } 
-                else
-                {
-                    aes.IV = iv;
-                }
-
-                byte[] encrypted;
 
                 using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
                 {
-                    encrypted = performCryptography(plainText, encryptor);
+                    return performCryptography(plainText, encryptor);
                 }
-
-                byte[] ciphertextwIV = aes.IV.Concat(encrypted).ToArray();
-
-                return ciphertextwIV;
             }
         }
 
@@ -51,24 +37,16 @@ namespace projekt
         {
             using (var aes = Aes.Create())
             {
-                aes.Mode = CipherMode.CBC;
+                aes.Mode = CipherMode.ECB;
                 aes.KeySize = 128;
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
 
-                byte[] IV = new byte[16];
-                byte[] encryptedData = new byte[encryptedText.Length - 16];
-
-                Array.Copy(encryptedText, IV, IV.Length);
-                Array.Copy(encryptedText, 16, encryptedData, 0, encryptedData.Length);
-
                 aes.Key = key;
-                aes.IV = IV;
               
-
                 using (var decryptor = aes.CreateDecryptor(aes.Key, aes.IV))
                 {
-                    return performCryptography(encryptedData, decryptor);
+                    return performCryptography(encryptedText, decryptor);
                 }
             }
         }

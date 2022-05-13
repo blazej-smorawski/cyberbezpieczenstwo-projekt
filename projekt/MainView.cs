@@ -6,9 +6,11 @@ namespace projekt
     public partial class MainView : Form
     {
         // List of all cryptographic algorithms available
-        List<Crypto> cryptos = new List<Crypto> {new CBCCrypto()};
+        List<Crypto> cryptos = new List<Crypto> {new CBCCrypto(), new ECBCrypto(), new CFBCrypto(), new CTRCrypto()};
         byte[] inputData;
         byte[] outputData;
+        bool displayChanges = false;
+        //bool useRandomIv = true;
 
         Encoding ascii = Encoding.ASCII;
         Encoding unicode = Encoding.Unicode;
@@ -47,30 +49,19 @@ namespace projekt
         {
             string oldText = outputText.Text;
             outputText.Text = newText;
-            outputText.SelectionBackColor = Color.Red;
-            for (int i = 0; i < newText.Length; i++)
+            if (displayChanges)
             {
-                if (i >= oldText.Length || newText[i] != oldText[i])
+                outputText.SelectionBackColor = Color.Red;
+                for (int i = 0; i < newText.Length; i++)
                 {
-                    outputText.Select(i, 1);
-                    outputText.SelectionBackColor = Color.Red;
+                    if (i >= oldText.Length || newText[i] != oldText[i])
+                    {
+                        outputText.Select(i, 1);
+                        outputText.SelectionBackColor = Color.Red;
+                    }
                 }
             }
-        }
 
-        private void displayNewInput(string newText)
-        {
-            string oldText = inputText.Text;
-            inputText.Text = newText;
-            inputText.SelectionBackColor = Color.Red;
-            for (int i = 0; i < newText.Length; i++)
-            {
-                if (i >= oldText.Length || newText[i] != oldText[i])
-                {
-                    inputText.Select(i, 1);
-                    inputText.SelectionBackColor = Color.Red;
-                }
-            }
         }
 
         private byte[] keyModifier(byte[] key)
@@ -99,10 +90,15 @@ namespace projekt
             byte[] input = inputData;
             byte[] key = System.Text.Encoding.ASCII.GetBytes(keyBox.Text);
             key = keyModifier(key);
-            //byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivBox.Text);
+            byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivTextBox.Text);
+
+            if (iv.Length > 0)
+            {
+                Array.Resize(ref iv, 16);
+            }
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            outputData = crypto.encrypt(input, key);
+            outputData = crypto.encrypt(input, key, iv);
 
             displayNewOutput(BitConverter.ToString(outputData));
         }
@@ -113,10 +109,15 @@ namespace projekt
             byte[] input = inputData;
             byte[] key = System.Text.Encoding.Latin1.GetBytes(keyBox.Text);
             key = keyModifier(key);
-            //byte[] iv = System.Text.Encoding.Latin1.GetBytes(ivBox.Text);
+            byte[] iv = System.Text.Encoding.ASCII.GetBytes(ivTextBox.Text);
+
+            if (iv.Length > 0)
+            {
+                Array.Resize(ref iv, 16);
+            }
 
             Crypto crypto = (Crypto)algorithmDropdown.SelectedValue;
-            outputData = crypto.decrypt(input, key);
+            outputData = crypto.decrypt(input, key, iv);
 
             displayNewOutput(BitConverter.ToString(outputData));
         }
@@ -148,10 +149,30 @@ namespace projekt
                 statusLabel.Text = "Failed to convert input data into bytes";
             }
         }
-
-        private void toolStripStatusLabel1_Click(object sender, EventArgs e)
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
+            if (checkBox1.Checked)
+            {
+                displayChanges = true;
+            }
+            else
+            {
+                displayChanges = false;
+            }
+        }
 
+        private void swapBufferButton_Click(object sender, EventArgs e)
+        {
+            swap(ref inputData, ref outputData);
+            inputText.Text = BitConverter.ToString(inputData);
+            outputText.Text = BitConverter.ToString(outputData);
+        }
+
+        void swap(ref byte[] arr1, ref byte[] arr2)
+        {
+            ref byte[] temp = ref arr1;
+            arr1 = arr2;
+            arr2 = temp;
         }
     }
 }
