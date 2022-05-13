@@ -8,27 +8,27 @@ using System.Threading.Tasks;
 
 namespace projekt
 {
-    internal class CBCCrypto : Crypto
+    internal class CFBCrypto : Crypto
     {
-        public CBCCrypto()
+        public CFBCrypto()
         {
-            name = "CBCCrypto";
+            name = "CFBCrypto";
         }
 
         public override byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv)
         {
             using (var aes = Aes.Create())
             {
-                aes.Mode = CipherMode.CBC;
+                aes.Mode = CipherMode.CFB;
                 aes.KeySize = 128;
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
 
                 aes.Key = key;
-                if (iv.Length == 0)
+                if(iv.Length == 0)
                 {
                     aes.GenerateIV();
-                } 
+                }
                 else
                 {
                     aes.IV = iv;
@@ -51,7 +51,7 @@ namespace projekt
         {
             using (var aes = Aes.Create())
             {
-                aes.Mode = CipherMode.CBC;
+                aes.Mode = CipherMode.CFB;
                 aes.KeySize = 128;
                 aes.BlockSize = 128;
                 aes.Padding = PaddingMode.PKCS7;
