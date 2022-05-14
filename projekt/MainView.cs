@@ -58,6 +58,20 @@ namespace projekt
                     {
                         outputText.Select(i, 1);
                         outputText.SelectionBackColor = Color.Red;
+
+                        // if current byte is changed
+                        if (i >= 3 && i % 3 == 0)
+                        {
+                            outputText.Select(i-2, 1);
+                            if (outputText.SelectionBackColor == Color.Red)
+                            {
+                                outputText.Select(i - 1, 1);
+                                outputText.SelectionBackColor = Color.Red;
+                            }
+
+                        }
+                        // aa-bb
+                        // 01234
                     }
                 }
             }
