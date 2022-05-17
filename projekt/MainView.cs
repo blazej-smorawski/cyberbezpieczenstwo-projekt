@@ -184,7 +184,7 @@ namespace projekt
 
         void swap(ref byte[] arr1, ref byte[] arr2)
         {
-            ref byte[] temp = ref arr1;
+            byte[] temp = arr1;
             arr1 = arr2;
             arr2 = temp;
         }
