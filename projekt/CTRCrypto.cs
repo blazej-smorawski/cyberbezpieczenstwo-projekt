@@ -17,99 +17,119 @@ namespace projekt
 
         public override byte[] encrypt(in byte[] plainText, in byte[] key, in byte[] iv)
         {
-            if(iv.Length != 16)
+            try
             {
-                throw new System.Security.Cryptography.CryptographicException("Wrong size of the iv");
-            }
-
-            byte[] plainTextCopy = new byte[plainText.Length];
-            Array.Copy(plainTextCopy, plainText, plainText.Length);
-            int size = ((plainText.Length + 15) / 16) * 16;
-            Array.Resize(ref plainTextCopy, size);
-            byte[] cipherText = new byte[size];
-
-            for (int i = 0; i < size; i+=16)
-            {
-                byte[] encrypted;
-                using (var aes = Aes.Create())
+                if (iv.Length != 16)
                 {
-                    aes.Mode = CipherMode.ECB;
-                    aes.KeySize = 128;
-                    aes.BlockSize = 128;
-                    aes.Padding = PaddingMode.PKCS7;
+                    throw new System.Security.Cryptography.CryptographicException("Wrong size of the iv");
+                }
 
-                    aes.Key = key;
+                byte[] plainTextCopy = new byte[plainText.Length];
+                Array.Copy(plainTextCopy, plainText, plainText.Length);
+                int size = ((plainText.Length + 15) / 16) * 16;
+                Array.Resize(ref plainTextCopy, size);
+                byte[] cipherText = new byte[size];
 
-                    using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                for (int i = 0; i < size; i += 16)
+                {
+                    byte[] encrypted;
+                    using (var aes = Aes.Create())
                     {
-                        encrypted = performCryptography(iv, encryptor);
+                        aes.Mode = CipherMode.ECB;
+                        aes.KeySize = 128;
+                        aes.BlockSize = 128;
+                        aes.Padding = PaddingMode.None;
+
+                        aes.Key = key;
+
+                        using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                        {
+                            encrypted = performCryptography(iv, encryptor);
+                        }
+                    }
+
+                    for (int j = 0; j < encrypted.Length; j++)
+                    {
+                        cipherText[i + j] = (byte)((int)encrypted[j] ^ (int)plainTextCopy[i + j]);
+                    }
+
+                    for (int j = 0; j < iv.Length; j++)
+                    {
+                        if ((int)iv[j] < 255)
+                        {
+                            iv[j] = (byte)((int)iv[j] + 1);
+                            break;
+                        } else if (j == iv.Length - 1)
+                        {
+                            // Last block is also full
+                            for (int x = 0; x < iv.Length; x++)
+                            {
+                                iv[x] = 0;
+                            }
+                        }
                     }
                 }
-               
-                for(int j = 0; j < encrypted.Length; j++)
-                {
-                    cipherText[i+j] = (byte)((int)encrypted[j] ^ (int)plainTextCopy[i+j]);
-                }
-
-                for (int j = 0; j < iv.Length; j++)
-                {
-                    if ((int)iv[j] < 255)
-                    {
-                        iv[j] = (byte)((int)iv[j] + 1);
-                        break;
-                    }
-                }
+                return cipherText;
+            } catch (CryptographicException e)
+            {
+                MessageBox.Show(e.Message, "Error");
+                return new byte[0];
             }
-            return cipherText;
         }
 
         public override byte[] decrypt(in byte[] encryptedText, in byte[] key, in byte[] iv)
         {
-
-            if (iv.Length != 16)
+            try
             {
-                throw new System.Security.Cryptography.CryptographicException("Wrong size of the iv");
-            }
-
-            byte[] encryptedTextCopy = new byte[encryptedText.Length];
-            Array.Copy(encryptedTextCopy, encryptedText, encryptedText.Length);
-            int size = ((encryptedText.Length + 15) / 16) * 16;
-            Array.Resize(ref encryptedTextCopy, size);
-            byte[] plainText = new byte[size];
-
-            for (int i = 0; i < size; i += 16)
-            {
-                byte[] encrypted;
-                using (var aes = Aes.Create())
+                if (iv.Length != 16)
                 {
-                    aes.Mode = CipherMode.ECB;
-                    aes.KeySize = 128;
-                    aes.BlockSize = 128;
-                    aes.Padding = PaddingMode.PKCS7;
+                    throw new CryptographicException("Wrong size of the iv");
+                }
 
-                    aes.Key = key;
+                byte[] encryptedTextCopy = new byte[encryptedText.Length];
+                Array.Copy(encryptedTextCopy, encryptedText, encryptedText.Length);
+                int size = ((encryptedText.Length + 15) / 16) * 16;
+                Array.Resize(ref encryptedTextCopy, size);
+                byte[] plainText = new byte[size];
 
-                    using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                for (int i = 0; i < size; i += 16)
+                {
+                    byte[] encrypted;
+                    using (var aes = Aes.Create())
                     {
-                        encrypted = performCryptography(iv, encryptor);
+                        aes.Mode = CipherMode.ECB;
+                        aes.KeySize = 128;
+                        aes.BlockSize = 128;
+                        aes.Padding = PaddingMode.None;
+
+                        aes.Key = key;
+
+                        using (var encryptor = aes.CreateEncryptor(aes.Key, aes.IV))
+                        {
+                            encrypted = performCryptography(iv, encryptor);
+                        }
+                    }
+
+                    for (int j = 0; j < encrypted.Length; j++)
+                    {
+                        plainText[i + j] = (byte)((int)encrypted[j] ^ (int)encryptedTextCopy[i + j]);
+                    }
+
+                    for (int j = 0; j < iv.Length; j++)
+                    {
+                        if ((int)iv[j] < 255)
+                        {
+                            iv[j] = (byte)((int)iv[j] + 1);
+                            break;
+                        }
                     }
                 }
-
-                for (int j = 0; j < encrypted.Length; j++)
-                {
-                    plainText[i + j] = (byte)((int)encrypted[j] ^ (int)encryptedTextCopy[i + j]);
-                }
-
-                for (int j = 0; j < iv.Length; j++)
-                {
-                    if ((int)iv[j] < 255)
-                    {
-                        iv[j] = (byte)((int)iv[j] + 1);
-                        break;
-                    }
-                }
-            }
-            return plainText;
+                return plainText;
+            } catch (CryptographicException e)
+            {
+                MessageBox.Show(e.Message, "Error");
+                return new byte[0];
+            } 
         }
     }
 }
